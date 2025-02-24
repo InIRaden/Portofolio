@@ -8,7 +8,7 @@ const services = [
     num: "01",
     title: "Web Development",
     description: "Lorem ipsum, dolor sit amet consectetur adipisicing elit",
-    href: "",
+    href: "/services/web-development",
   },
   {
     num: "02",

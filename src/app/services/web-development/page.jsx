@@ -3,14 +3,7 @@
 import { useState } from "react";
 
 const Portfolio = () => {
-  const [projects, setProjects] = useState([
-    {
-      title: "Website Company Profile",
-      description: "Website untuk perusahaan startup",
-      link: "https://example.com",
-      image: "https://source.unsplash.com/400x300/?technology,website",
-    },
-  ]);
+  const [portfolio, setPortfolio] = useState([])
 
   const [editingIndex, setEditingIndex] = useState(null); // Untuk mode edit
 
@@ -96,7 +89,7 @@ const Portfolio = () => {
 
         {/* Menampilkan Portfolio */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {projects.map((project, index) => (
+          {portfolio.map((project, index) => (
             <div key={index} className="bg-gray-800 rounded-lg shadow-lg p-4 relative">
               <img src={project.image} alt={project.title} className="w-full h-40 object-cover rounded-lg mb-4" />
               <h2 className="text-2xl font-bold mb-2">{project.title}</h2>

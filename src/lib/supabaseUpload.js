@@ -1,27 +1,34 @@
-import { createClient } from "@supabase/supabase-js";
-
-export const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+import { supabase } from "./supabaseServer";
 
 export async function uploadImageToSupabase(file) {
-  const timestamp = Date.now();
-  const fileName = `${timestamp}-${file.name.replace(/\s+/g, "-")}`;
+  try {
+    // Convert File → Buffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-  const { data, error } = await supabase.storage
-    .from("projects")
-    .upload(fileName, file, {
-      contentType: file.type,
-      cacheControl: "3600",
-      upsert: false,
-    });
+    // Create unique filename
+    const timestamp = Date.now();
+    const fileName = `${timestamp}-${file.name.replace(/\s+/g, "-")}`;
 
-  if (error) throw new Error(error.message);
+    // Upload to Supabase
+    const { error } = await supabase.storage
+      .from("rmahesa-images")
+      .upload(fileName, buffer, {
+        contentType: file.type,
+        cacheControl: "3600",
+        upsert: false,
+      });
 
-  const { data: urlData } = supabase.storage
-    .from("projects")
-    .getPublicUrl(fileName);
+    if (error) throw new Error(error.message);
 
-  return urlData.publicUrl;
+    // Get public URL
+    const { data } = supabase.storage
+      .from("rmahesa-images")
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  } catch (err) {
+    console.error("Upload error:", err);
+    throw err;
+  }
 }

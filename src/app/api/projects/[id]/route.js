@@ -15,9 +15,29 @@ export async function GET(request, { params }) {
       );
     }
     
+    const parseStack = (val) => {
+      if (!val) return [];
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'object') return val;
+      if (typeof val === 'string') {
+        const s = val.trim();
+        try { return JSON.parse(s); } catch {}
+        const m = s.match(/^\{(.*)\}$/);
+        if (m) {
+          return m[1]
+            .split(',')
+            .map(x => x.trim())
+            .map(x => x.replace(/^"(.*)"$/, '$1'))
+            .filter(x => x.length);
+        }
+        return [s];
+      }
+      return [];
+    };
+
     const project = {
       ...rows[0],
-      stack: rows[0].stack ? JSON.parse(rows[0].stack) : []
+      stack: parseStack(rows[0].stack)
     };
     
     return NextResponse.json({ success: true, data: project });

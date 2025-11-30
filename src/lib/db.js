@@ -1,87 +1,77 @@
-import { Pool } from 'pg';
+import postgres from 'postgres';
 
-// Read connection string for Supabase Postgres
-// Prefer DATABASE_URL; fallback to POSTGRES_URL variants if provided
+// Build connection string with fallbacks
 const connectionString =
-  process.env.DATABASE_URL ||
-  process.env.POSTGRES_URL ||
-  process.env.POSTGRES_CONNECTION_STRING ||
-  '';
+	process.env.DATABASE_URL ||
+	process.env.POSTGRES_URL ||
+	process.env.POSTGRES_CONNECTION_STRING ||
+	'';
 
-// Create a connection pool (Supabase requires SSL)
-const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false }
+// Supabase requires SSL; add timeouts and disable prepared statements for PgBouncer
+const sql = postgres(connectionString, {
+	ssl: 'require',
+	connect_timeout: 10_000, // ms
+	idle_timeout: 30,        // seconds
+	keep_alive: 1,           // seconds
+	max: 10,
+	// When using Connection Pooling (PgBouncer), prepared statements must be disabled
+	prepare: false,
 });
 
-// Replace MySQL-style placeholders (?) with Postgres-style ($1, $2, ...)
-function convertPlaceholders(sql = '', params = []) {
-  let index = 0;
-  const text = sql.replace(/\?/g, () => {
-    index += 1;
-    return `$${index}`;
-  });
-  return { text, values: params };
+// Replace MySQL-style placeholders (?) with $1, $2 ...
+function convertPlaceholders(text = '', params = []) {
+	let i = 0;
+	const converted = text.replace(/\?/g, () => `$${++i}`);
+	return { text: converted, values: params };
 }
 
-// Lightweight compatibility layer to mimic mysql2's pool.query API
-async function query(sql, params = []) {
-  const trimmed = (sql || '').trim();
-  const command = trimmed.split(/\s+/)[0].toUpperCase();
+// Compatibility wrapper to mimic mysql2 pool.query()
+async function query(text, params = []) {
+	const trimmed = (text || '').trim();
+	const command = trimmed.split(/\s+/)[0].toUpperCase();
 
-  let text = trimmed;
-  let values = params;
+	let sqlText = trimmed;
+	let values = params;
 
-  // Only convert placeholders when params are provided
-  if (params && params.length > 0) {
-    const conv = convertPlaceholders(trimmed, params);
-    text = conv.text;
-    values = conv.values;
-  }
+	if (params && params.length > 0) {
+		const conv = convertPlaceholders(trimmed, params);
+		sqlText = conv.text;
+		values = conv.values;
+	}
 
-  // Ensure INSERT returns id to emulate result.insertId
-  if (command === 'INSERT' && !/RETURNING\s+\w+/i.test(text)) {
-    text = `${text} RETURNING id`;
-  }
+	// Ensure INSERT returns id to emulate result.insertId
+	if (command === 'INSERT' && !/RETURNING\s+\w+/i.test(sqlText)) {
+		sqlText = `${sqlText} RETURNING id`;
+	}
 
-  const res = await pool.query(text, values);
+	// Execute using postgres.js; unsafe allows $1 parameterization
+	const res = await sql.unsafe(sqlText, values);
 
-  if (command === 'SELECT' || /^WITH\b/i.test(trimmed)) {
-    // mysql2 returns [rows] for selects
-    return [res.rows];
-  }
+	// postgres.js returns an array-like object with rows; UPDATE/DELETE add count
+	if (command === 'SELECT' || /^WITH\b/i.test(trimmed)) {
+		return [res];
+	}
 
-  if (command === 'INSERT') {
-    const insertId = res.rows?.[0]?.id ?? null;
-    return [
-      {
-        insertId,
-        rowCount: res.rowCount
-      }
-    ];
-  }
+	if (command === 'INSERT') {
+		const insertId = res?.[0]?.id ?? null;
+		return [
+			{
+				insertId,
+				rowCount: res?.count ?? (Array.isArray(res) ? res.length : 0)
+			}
+		];
+	}
 
-  if (command === 'UPDATE' || command === 'DELETE') {
-    return [
-      {
-        affectedRows: res.rowCount,
-        rowCount: res.rowCount
-      }
-    ];
-  }
+	if (command === 'UPDATE' || command === 'DELETE') {
+		return [
+			{
+				affectedRows: res?.count ?? 0,
+				rowCount: res?.count ?? 0
+			}
+		];
+	}
 
-  // Default: return rows for any other statement
-  return [res.rows];
+	return [res];
 }
-
-// Test connection on startup
-pool
-  .query('SELECT 1')
-  .then(() => {
-    console.log('✅ PostgreSQL connected successfully');
-  })
-  .catch((err) => {
-    console.error('❌ PostgreSQL connection failed:', err.message);
-  });
 
 export default { query };

@@ -17,10 +17,33 @@ export async function GET(request) {
     
     const [rows] = await db.query(query, params);
     
-    // Parse stack JSON string back to array
+    // Parse stack robustly (handles JSON string, PG array literal, or already-array)
+    const parseStack = (val) => {
+      if (!val) return [];
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'object') return val;
+      if (typeof val === 'string') {
+        const s = val.trim();
+        // Try JSON first
+        try { return JSON.parse(s); } catch {}
+        // Try Postgres array literal: {"HTML","CSS"} or {HTML,CSS}
+        const m = s.match(/^\{(.*)\}$/);
+        if (m) {
+          return m[1]
+            .split(',')
+            .map(x => x.trim())
+            .map(x => x.replace(/^"(.*)"$/, '$1'))
+            .filter(x => x.length);
+        }
+        // Fallback to single-item array
+        return [s];
+      }
+      return [];
+    };
+
     const projects = rows.map(project => ({
       ...project,
-      stack: project.stack ? JSON.parse(project.stack) : []
+      stack: parseStack(project.stack)
     }));
     
     return NextResponse.json({ success: true, data: projects });

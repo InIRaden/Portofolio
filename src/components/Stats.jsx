@@ -1,27 +1,48 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import CountUp from "react-countup";
 
-const stats = [
-  {
-    num: 0,
-    text: "Year of experience",
-  },
-  {
-    num: 3,
-    text: "Projects completed",
-  },
-  {
-    num: 5,
-    text: "Technologies mastered",
-  },
-  {
-    num: 0,
-    text: "Code commit",
-  },
-];
-
 const Stats = () => {
+  const [stats, setStats] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch("/api/stats");
+      const result = await response.json();
+      
+      if (result.success) {
+        // Transform data to match component format
+        const transformedStats = result.data.map(stat => ({
+          num: stat.stat_value,
+          text: stat.stat_label
+        }));
+        setStats(transformedStats);
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <section className="pt-4 pb-12 xl:pt-0 xl:pb-0">
+        <div className="container mx-auto">
+          <div className="flex flex-wrap gap-6 max-w-[80vw] mx-auto xl:max-w-none">
+            <div className="text-center w-full text-white/60">Loading...</div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="pt-4 pb-12 xl:pt-0 xl:pb-0">
       <div className="container mx-auto">

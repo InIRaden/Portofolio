@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { FiDownload } from "react-icons/fi";
 
@@ -7,6 +10,51 @@ import Photo from "@/components/Photo";
 import Stats from "@/components/Stats";
 
 const Home = () => {
+  const [cvData, setCvData] = useState(null);
+  const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    fetchCV();
+  }, []);
+
+  const fetchCV = async () => {
+    try {
+      const response = await fetch("/api/cv");
+      const data = await response.json();
+      if (data.success && data.data) {
+        setCvData(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching CV:", error);
+    }
+  };
+
+  const handleDownloadCV = async () => {
+    if (!cvData) {
+      alert("CV belum tersedia untuk didownload");
+      return;
+    }
+
+    setDownloading(true);
+    try {
+      const response = await fetch(cvData.file_path);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = cvData.file_name || 'CV_Raden_Mahesa.pdf';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Error downloading CV:", error);
+      alert("Gagal mendownload CV");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <section>
       <div className="container mx-auto h-full">
@@ -34,8 +82,10 @@ const Home = () => {
                 variant="outline"
                 size="lg"
                 className="uppercase flex items-center gap-2"
+                onClick={handleDownloadCV}
+                disabled={!cvData || downloading}
               >
-                <span>Download CV</span>
+                <span>{downloading ? "Downloading..." : "Download CV"}</span>
                 <FiDownload className="text-xl" />
               </Button>
               <div className="mb-8 xl:mb-0">

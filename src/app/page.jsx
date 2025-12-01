@@ -37,16 +37,15 @@ const Home = () => {
 
     setDownloading(true);
     try {
-      const response = await fetch(cvData.file_path);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = cvData.file_name || 'CV_Raden_Mahesa.pdf';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Direct download from Supabase URL
+      const link = document.createElement('a');
+      link.href = cvData.file_path;
+      link.download = cvData.file_name || 'CV_Raden_Mahesa.pdf';
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error("Error downloading CV:", error);
       alert("Gagal mendownload CV");

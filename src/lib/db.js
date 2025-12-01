@@ -7,6 +7,10 @@ const connectionString =
 	process.env.POSTGRES_CONNECTION_STRING ||
 	'';
 
+if (!connectionString) {
+	console.error('❌ DATABASE_URL is not set!');
+}
+
 // Supabase requires SSL; add timeouts and disable prepared statements for PgBouncer
 const sql = postgres(connectionString, {
 	ssl: 'require',
@@ -16,6 +20,8 @@ const sql = postgres(connectionString, {
 	max: 10,
 	// When using Connection Pooling (PgBouncer), prepared statements must be disabled
 	prepare: false,
+	onnotice: () => {}, // Suppress notices
+	debug: process.env.NODE_ENV === 'development',
 });
 
 // Replace MySQL-style placeholders (?) with $1, $2 ...

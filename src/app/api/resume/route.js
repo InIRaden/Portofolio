@@ -45,7 +45,7 @@ export async function POST(request) {
     const contentJson = JSON.stringify(content);
     
     const [result] = await db.query(
-      'INSERT INTO resume_data (section, content, order_index) VALUES (?, ?, ?)',
+      'INSERT INTO resume_data (section, content, order_index) VALUES ($1, $2, $3)',
       [section, contentJson, order_index || 0]
     );
     

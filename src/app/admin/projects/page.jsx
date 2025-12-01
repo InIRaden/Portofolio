@@ -75,8 +75,13 @@ export default function AdminPage() {
       const data = await response.json();
       
       if (data.success) {
-        setFormData(prev => ({ ...prev, image: data.data.url }));
-        alert("Image uploaded successfully!");
+        const imageUrl = data.data?.url || data.url;
+        if (imageUrl) {
+          setFormData(prev => ({ ...prev, image: imageUrl }));
+          alert("Image uploaded successfully!");
+        } else {
+          alert("Upload succeeded but no URL returned");
+        }
       } else {
         alert(data.error || "Upload failed");
       }

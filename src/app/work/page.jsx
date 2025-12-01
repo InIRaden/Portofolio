@@ -112,11 +112,15 @@ const Work = () => {
                       >
                         {/* Image */}
                         {project.image && (
-                          <div className="w-full h-[200px] relative mb-4 overflow-hidden rounded-lg">
+                          <div className="w-full h-[160px] sm:h-[200px] relative mb-4 overflow-hidden rounded-lg bg-white/5">
                             <img
                               src={project.image}
                               alt={project.title}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.parentElement.innerHTML = '<div class="w-full h-full flex items-center justify-center text-white/40">Image not available</div>';
+                              }}
                             />
                           </div>
                         )}

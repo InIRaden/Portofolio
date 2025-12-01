@@ -66,7 +66,7 @@ const Work = () => {
             <div className="flex flex-col gap-[30px] h-[50%]">
               {/* Outline num */}
               <div className="text-8xl leading-none font-extrabold text-transparent text-outline">
-                {String(filteredProjects.findIndex(p => p.id === filteredProjects[0]?.id) + 1).padStart(2, "0")}
+                {String(filteredProjects.length).padStart(2, "0")}
               </div>
               {/* Project category */}
               <h2 className="text-[42px] font-bold leading-none text-white group-hover:text-accent transition-all duration-500 capitalize">

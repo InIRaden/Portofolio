@@ -1,9 +1,11 @@
-import { supabase } from "@/lib/supabaseServer";
+import { supabase, validateSupabaseConfig } from "@/lib/supabaseServer";
 import { NextResponse } from "next/server";
 
 // GET - Get active CV
 export async function GET() {
   try {
+    validateSupabaseConfig();
+    
     const { data, error } = await supabase
       .from("cv_files")
       .select("*")
@@ -25,6 +27,8 @@ export async function GET() {
 // POST - Upload CV
 export async function POST(request) {
   try {
+    validateSupabaseConfig();
+    
     const formData = await request.formData();
     const file = formData.get("file");
 
@@ -88,6 +92,8 @@ export async function POST(request) {
 // DELETE - Delete CV
 export async function DELETE(request) {
   try {
+    validateSupabaseConfig();
+    
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 

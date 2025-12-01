@@ -1,7 +1,10 @@
-import { supabase } from "./supabaseServer";
+import { supabase, validateSupabaseConfig } from "./supabaseServer";
 
 export async function uploadImageToSupabase(file) {
   try {
+    // Validate config at runtime
+    validateSupabaseConfig();
+
     // Convert File → Buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);

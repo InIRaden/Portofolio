@@ -13,6 +13,23 @@ export async function POST(request) {
       );
     }
 
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid file type. Only images are allowed." },
+        { status: 400 }
+      );
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json(
+        { success: false, error: "File size exceeds 5MB limit" },
+        { status: 400 }
+      );
+    }
+
     const publicUrl = await uploadImageToSupabase(file);
 
     return NextResponse.json({
@@ -20,6 +37,7 @@ export async function POST(request) {
       url: publicUrl,
     });
   } catch (error) {
+    console.error("Upload API error:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

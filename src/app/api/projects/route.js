@@ -57,6 +57,7 @@ export async function POST(request) {
     const query = `
       INSERT INTO projects (title, description, category, image, stack, live_url, github_url)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id, title, description, category, image, stack, live_url, github_url, created_at
     `;
     
     const [result] = await db.query(query, [
@@ -69,9 +70,19 @@ export async function POST(request) {
       github_url || null
     ]);
     
+    // Parse stack back for response
+    let parsedStack = stack;
+    if (result[0]?.stack) {
+      try {
+        parsedStack = JSON.parse(result[0].stack);
+      } catch {
+        parsedStack = stack;
+      }
+    }
+    
     return NextResponse.json({
       success: true,
-      data: { id: result.insertId, ...body }
+      data: { ...result[0], stack: parsedStack }
     });
     
   } catch (error) {

@@ -33,6 +33,12 @@ function convertPlaceholders(text = '', params = []) {
 
 // Compatibility wrapper to mimic mysql2 pool.query()
 async function query(text, params = []) {
+	if (!connectionString) {
+		const err = new Error('Database connection is not configured. Set DATABASE_URL or POSTGRES_URL.');
+		err.code = 'DB_CONFIG_MISSING';
+		throw err;
+	}
+
 	const trimmed = (text || '').trim();
 	const command = trimmed.split(/\s+/)[0].toUpperCase();
 

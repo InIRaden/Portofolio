@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { BsArrowUpRight, BsGithub, BsArrowLeft } from "react-icons/bs";
+import { BsArrowUpRight, BsGithub, BsArrowLeft, BsCalendar3, BsLayers } from "react-icons/bs";
 import { Button } from "@/components/ui/button";
 
 export default function ProjectDetailPage({ params }) {
@@ -30,8 +30,10 @@ export default function ProjectDetailPage({ params }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-2xl">Loading project...</div>
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="w-full max-w-xl rounded-3xl border border-white/10 bg-[#232329] p-8 text-center">
+          <p className="text-lg text-white/70">Loading project...</p>
+        </div>
       </div>
     );
   }
@@ -48,149 +50,160 @@ export default function ProjectDetailPage({ params }) {
   }
 
   return (
-    <motion.div
+    <motion.section
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { delay: 0.4, duration: 0.4 } }}
-      className="min-h-screen py-12"
+      className="min-h-screen py-8 md:py-12"
     >
       <div className="container mx-auto px-4">
-        {/* Back Button */}
-        <Link href="/work">
-          <Button variant="outline" className="mb-8 flex items-center gap-2">
+        <Link href="/work" className="inline-block">
+          <Button variant="outline" className="mb-6 flex items-center gap-2">
             <BsArrowLeft /> Back to Projects
           </Button>
         </Link>
 
-        <div className="grid xl:grid-cols-2 gap-12">
-          {/* Image Section */}
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-primary/80">
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="w-full"
+            className="relative min-h-[300px] md:min-h-[420px]"
           >
             {project.image ? (
-              <div className="relative aspect-video rounded-xl overflow-hidden bg-[#232329]">
+              <>
                 <img
                   src={project.image}
                   alt={project.title}
-                  className="w-full h-full object-cover"
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
-              </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-black/10" />
+              </>
             ) : (
-              <div className="aspect-video rounded-xl bg-[#232329] flex items-center justify-center">
+              <div className="absolute inset-0 bg-[#232329] flex items-center justify-center">
                 <p className="text-white/60">No image available</p>
               </div>
             )}
 
-            {/* Tech Stack */}
-            {project.stack && project.stack.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-xl font-bold mb-4">Technologies Used</h3>
-                <div className="flex flex-wrap gap-3">
-                  {project.stack.map((tech, index) => (
-                    <span
-                      key={index}
-                      className="bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </motion.div>
-
-          {/* Details Section */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="w-full"
-          >
-            {/* Category Badge */}
-            <div className="inline-block mb-4">
-              <span className="bg-accent text-primary px-4 py-1 rounded-full text-sm font-semibold uppercase">
+            <div className="relative z-10 flex h-full flex-col justify-end p-6 md:p-10">
+              <p className="mb-3 inline-flex w-fit rounded-full border border-accent/40 bg-black/30 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent">
                 {project.category}
-              </span>
-            </div>
-
-            {/* Title */}
-            <h1 className="text-4xl xl:text-5xl font-bold mb-6">{project.title}</h1>
-
-            {/* Description */}
-            <div className="mb-8">
-              <h3 className="text-xl font-bold mb-4">About This Project</h3>
-              <p className="text-white/60 leading-relaxed whitespace-pre-line">
-                {project.description}
               </p>
-            </div>
-
-            {/* Project Info */}
-            <div className="bg-[#232329] rounded-xl p-6 mb-8">
-              <h3 className="text-xl font-bold mb-4">Project Information</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between border-b border-white/10 pb-3">
-                  <span className="text-white/60">Category</span>
-                  <span className="font-medium capitalize">{project.category}</span>
-                </div>
-                <div className="flex justify-between border-b border-white/10 pb-3">
-                  <span className="text-white/60">Created</span>
-                  <span className="font-medium">
-                    {new Date(project.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-                {project.updated_at && (
-                  <div className="flex justify-between">
-                    <span className="text-white/60">Last Updated</span>
-                    <span className="font-medium">
-                      {new Date(project.updated_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-4">
-              {project.live_url && (
-                <Link href={project.live_url} target="_blank">
-                  <Button className="flex items-center gap-2">
-                    <BsArrowUpRight />
-                    View Live Project
-                  </Button>
-                </Link>
-              )}
-
-              {project.github_url && (
-                <Link href={project.github_url} target="_blank">
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <BsGithub />
-                    View on GitHub
-                  </Button>
-                </Link>
-              )}
+              <h1 className="max-w-4xl text-3xl font-bold leading-tight text-white md:text-5xl">
+                {project.title}
+              </h1>
+              <p className="mt-4 max-w-3xl text-white/70">{project.description}</p>
             </div>
           </motion.div>
-        </div>
 
-        {/* Additional Section - Related Projects (Optional) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mt-16"
-        >
-          <h3 className="text-2xl font-bold mb-6">Project Details</h3>
-          <div className="bg-[#232329] rounded-xl p-8">
-            <div className="prose prose-invert max-w-none">
-              <p className="text-white/60 leading-relaxed">
-                {project.description}
-              </p>
-            </div>
+          <div className="grid gap-8 p-6 md:p-8 xl:grid-cols-[1.35fr_0.65fr]">
+            <motion.div
+              initial={{ opacity: 0, x: -15 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.25 }}
+              className="space-y-6"
+            >
+              <section className="rounded-2xl border border-white/10 bg-black/35 p-6">
+                <h2 className="mb-3 text-2xl font-bold text-white">Project Overview</h2>
+                <p className="whitespace-pre-line leading-relaxed text-white/65">{project.description}</p>
+              </section>
+
+              {project.stack && project.stack.length > 0 && (
+                <section className="rounded-2xl border border-white/10 bg-black/35 p-6">
+                  <h2 className="mb-4 flex items-center gap-2 text-2xl font-bold text-white">
+                    <BsLayers className="text-accent" />
+                    Tech Stack
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {project.stack.map((tech, index) => (
+                      <span
+                        key={`${tech}-${index}`}
+                        className="rounded-full border border-accent/25 bg-accent/10 px-4 py-1.5 text-sm font-medium text-accent"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              <section className="rounded-2xl border border-white/10 bg-black/35 p-6">
+                <h2 className="mb-4 text-2xl font-bold text-white">Gallery</h2>
+                <div className="overflow-hidden rounded-xl border border-white/10 bg-[#232329]">
+                  {project.image ? (
+                    <img
+                      src={project.image}
+                      alt={`${project.title} preview`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex min-h-[220px] items-center justify-center text-white/55">
+                      No preview image available
+                    </div>
+                  )}
+                </div>
+              </section>
+            </motion.div>
+
+            <motion.aside
+              initial={{ opacity: 0, x: 15 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="space-y-4 xl:sticky xl:top-8 xl:self-start"
+            >
+              <div className="rounded-2xl border border-white/10 bg-black/40 p-6">
+                <h3 className="mb-4 text-lg font-bold text-white">Project Facts</h3>
+                <div className="space-y-4 text-sm">
+                  <div className="rounded-xl border border-white/10 bg-primary/60 p-3">
+                    <p className="text-white/50">Category</p>
+                    <p className="mt-1 font-semibold capitalize text-white">{project.category}</p>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-primary/60 p-3">
+                    <p className="flex items-center gap-2 text-white/50">
+                      <BsCalendar3 className="text-accent" /> Created
+                    </p>
+                    <p className="mt-1 font-semibold text-white">
+                      {new Date(project.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  {project.updated_at && (
+                    <div className="rounded-xl border border-white/10 bg-primary/60 p-3">
+                      <p className="text-white/50">Last Updated</p>
+                      <p className="mt-1 font-semibold text-white">
+                        {new Date(project.updated_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/40 p-6">
+                <h3 className="mb-4 text-lg font-bold text-white">Open Project</h3>
+                <div className="flex flex-col gap-3">
+                  {project.live_url && (
+                    <Link href={project.live_url} target="_blank">
+                      <Button className="w-full justify-center gap-2">
+                        View Live Project <BsArrowUpRight />
+                      </Button>
+                    </Link>
+                  )}
+
+                  {project.github_url && (
+                    <Link href={project.github_url} target="_blank">
+                      <Button variant="outline" className="w-full justify-center gap-2">
+                        View on GitHub <BsGithub />
+                      </Button>
+                    </Link>
+                  )}
+
+                  {!project.live_url && !project.github_url && (
+                    <p className="text-sm text-white/55">External links are not available for this project.</p>
+                  )}
+                </div>
+              </div>
+            </motion.aside>
           </div>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </motion.section>
   );
 }
